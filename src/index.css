@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: 97.5% 0.012 95;
+  --ink: 22% 0.02 95;
+  --muted: 52% 0.015 95;
+  --line: 90% 0.012 95;
+  --card: 99% 0.006 95;
+  --accent: 35% 0.06 155;
+  --accent-soft: 78% 0.05 155;
+  --amber: 70% 0.13 70;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: 20% 0.012 260;
+    --ink: 94% 0.01 95;
+    --muted: 68% 0.015 260;
+    --line: 30% 0.015 260;
+    --card: 24% 0.014 260;
+    --accent: 72% 0.09 155;
+    --accent-soft: 40% 0.06 155;
+    --amber: 75% 0.13 70;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: 20% 0.012 260;
+  --ink: 94% 0.01 95;
+  --muted: 68% 0.015 260;
+  --line: 30% 0.015 260;
+  --card: 24% 0.014 260;
+  --accent: 72% 0.09 155;
+  --accent-soft: 40% 0.06 155;
+  --amber: 75% 0.13 70;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: oklch(var(--paper));
+  color: oklch(var(--ink));
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.font-editorial {
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+
+::selection {
+  background: oklch(var(--accent-soft) / 0.5);
+}
+
+.transition-soft {
+  transition: all 200ms ease;
+}
