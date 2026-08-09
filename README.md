@@ -25,3 +25,5 @@ npm run dev
 ## Limitações conhecidas
 
 Este repositório estava vazio; o app foi construído do zero seguindo a fundação de produto (arquitetura de motores, entidades, design system) descrita no briefing. Persistência é local ao navegador — a próxima etapa natural é conectar um backend (Lovable Cloud) para contas reais, sincronização entre dispositivos e push notifications de verdade.
+
+Ver [`CHANGELOG.md`](./CHANGELOG.md) para o detalhamento do que foi entregue em cada versão.
