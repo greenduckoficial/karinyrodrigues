@@ -21,9 +21,13 @@ repositório no GitHub Pages a cada push na branch `main` (ou via execução man
 Actions → Deploy site → Run workflow). Para ativar, habilite Pages no repositório em
 Settings → Pages → Source: "GitHub Actions".
 
-## Observação
+## Armazenamento dos contatos
 
-O painel admin (leads recebidos) usa `window.storage`, uma API de armazenamento não padrão
-de navegador. Fora de um runtime que a forneça, o formulário e os botões de WhatsApp/e-mail
-continuam funcionando normalmente, mas a listagem de leads no painel não terá dados
-persistidos.
+Os leads (nome, telefone, evento "Intersolar 2026", canal e data) são salvos em uma
+planilha do Google Sheets via Apps Script, para que apareçam no seu painel
+independente de em qual celular a pessoa preencheu o formulário. Configuração
+única de ~5 minutos: veja [`SHEET_SETUP.md`](./SHEET_SETUP.md).
+
+Até você preencher as URLs no `index.html`, o formulário continua funcionando
+(WhatsApp/e-mail abrem normalmente), mas nada é salvo — é por isso que os
+nomes "não ficavam salvos" antes dessa configuração.

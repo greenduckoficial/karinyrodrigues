@@ -362,16 +362,24 @@
       <button onclick="closeAdmin()">&times;</button>
     </div>
     <div id="leads-body">
-      <p class="empty-state">Carregando...</p>
+      <p class="empty-state">Os contatos ficam salvos na planilha do Google Sheets, sempre atualizada em tempo real. Abra a planilha ou baixe o CSV (já com a coluna Evento preenchida).</p>
     </div>
     <div class="panel-actions">
-      <button onclick="loadLeads()">Atualizar</button>
+      <button onclick="openSheet()">Abrir planilha</button>
       <button class="primary" onclick="downloadCSV()">Baixar CSV</button>
     </div>
   </div>
 </div>
 
 <script>
+  const EVENT_NAME = 'Intersolar 2026';
+  // Cole aqui a URL de implantação (Web App) do Apps Script — veja SHEET_SETUP.md
+  const SHEET_WEBAPP_URL = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT';
+  // Cole aqui o link normal da planilha (para abrir e visualizar)
+  const SHEET_VIEW_URL = 'COLE_AQUI_O_LINK_DA_PLANILHA';
+  // Cole aqui o link de exportação CSV da planilha (.../export?format=csv&gid=0)
+  const SHEET_CSV_URL = 'COLE_AQUI_O_LINK_DE_EXPORTACAO_CSV';
+
   function validate(){
     const name = document.getElementById('visitor-name').value.trim();
     const phone = document.getElementById('visitor-phone').value.trim();
@@ -394,13 +402,22 @@
     const entry = {
       name,
       phone,
+      event: EVENT_NAME,
       channel,
       timestamp: new Date().toISOString()
     };
 
     try{
-      const key = 'leads:' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
-      await window.storage.set(key, JSON.stringify(entry), true);
+      if(SHEET_WEBAPP_URL.startsWith('http')){
+        // Apps Script não retorna cabeçalho CORS, então usamos no-cors:
+        // a gravação na planilha acontece, mas não dá pra ler a resposta.
+        await fetch(SHEET_WEBAPP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(entry)
+        });
+      }
       status.textContent = 'Contato salvo. Abrindo ' + (channel === 'whatsapp' ? 'WhatsApp' : 'e-mail') + '...';
     }catch(e){
       status.textContent = 'Não consegui salvar agora, mas vou te direcionar.';
@@ -434,7 +451,6 @@
     }
     closePinModal();
     document.getElementById('overlay').classList.add('open');
-    loadLeads();
   }
   document.addEventListener('DOMContentLoaded', function(){
     const pinInput = document.getElementById('pin-input');
@@ -448,67 +464,20 @@
     document.getElementById('overlay').classList.remove('open');
   }
 
-  let cachedLeads = [];
-
-  async function loadLeads(){
-    const body = document.getElementById('leads-body');
-    body.innerHTML = '<p class="empty-state">Carregando...</p>';
-    try{
-      const list = await window.storage.list('leads:', true);
-      const keys = (list && list.keys) ? list.keys : [];
-      const results = [];
-      for(const k of keys){
-        try{
-          const r = await window.storage.get(k, true);
-          if(r && r.value) results.push(JSON.parse(r.value));
-        }catch(e){ /* skip missing key */ }
-      }
-      results.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-      cachedLeads = results;
-
-      if(results.length === 0){
-        body.innerHTML = '<p class="empty-state">Ninguém preencheu contato ainda.</p>';
-        return;
-      }
-
-      let html = '<table><thead><tr><th>Nome</th><th>Telefone</th><th>Via</th><th>Quando</th></tr></thead><tbody>';
-      for(const r of results){
-        const d = new Date(r.timestamp);
-        const when = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-        html += '<tr><td>' + escapeHtml(r.name) + '</td><td>' + escapeHtml(r.phone) + '</td><td>' + (r.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail') + '</td><td>' + when + '</td></tr>';
-      }
-      html += '</tbody></table>';
-      body.innerHTML = html;
-    }catch(e){
-      body.innerHTML = '<p class="empty-state">Não consegui carregar os contatos agora.</p>';
-      console.error(e);
+  function openSheet(){
+    if(!SHEET_VIEW_URL.startsWith('http')){
+      alert('Configure SHEET_VIEW_URL no index.html com o link da planilha (veja SHEET_SETUP.md).');
+      return;
     }
-  }
-
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    window.open(SHEET_VIEW_URL, '_blank');
   }
 
   function downloadCSV(){
-    if(cachedLeads.length === 0){
-      document.getElementById('leads-body').innerHTML = '<p class="empty-state">Ainda não há contatos para exportar.</p>';
+    if(!SHEET_CSV_URL.startsWith('http')){
+      alert('Configure SHEET_CSV_URL no index.html com o link de exportação CSV (veja SHEET_SETUP.md).');
       return;
     }
-    let csv = 'Nome,Telefone,Canal,Data\n';
-    for(const r of cachedLeads){
-      const d = new Date(r.timestamp);
-      const when = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR');
-      csv += '"' + r.name.replace(/"/g,'""') + '","' + r.phone.replace(/"/g,'""') + '","' + (r.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail') + '","' + when + '"\n';
-    }
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'contatos-cartao-kariny.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    window.open(SHEET_CSV_URL, '_blank');
   }
 </script>
 
